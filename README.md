@@ -1,6 +1,8 @@
 # Atividade-AWS-Docker
 ## Atividade AWS+Docker Compass UOL.
 
+<img src="topologia.png">
+
 ### Requisitos:
 
 * Efetuar Deploy de uma aplicação Wordpress com container de aplicação RDS database Mysql;
