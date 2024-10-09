@@ -155,6 +155,45 @@ chown ec2-user:ec2-user /home/ec2-user/docker-compose.yml
 
 cd /home/ec2-user
 docker-compose up -d
+
+# Instalar o Amazon CloudWatch Agent
+yum install -y amazon-cloudwatch-agent
+
+# Criar arquivo de configuração do CloudWatch Agent
+cat <<EOF > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+{
+  "metrics": {
+    "append_dimensions": {
+      "InstanceId": "\${aws:InstanceId}"
+    },
+    "aggregation_dimensions": [["InstanceId"]],
+    "metrics_collected": {
+      "mem": {
+        "measurement": ["mem_used_percent"],
+        "metrics_collection_interval": 60
+      },
+      "cpu": {
+        "measurement": ["cpu_usage_idle", "cpu_usage_iowait", "cpu_usage_user", "cpu_usage_system"],
+        "metrics_collection_interval": 60
+      },
+      "disk": {
+        "measurement": ["disk_used_percent"],
+        "metrics_collection_interval": 60
+      },
+      "netstat": {
+        "metrics_collection_interval": 60,
+        "measurement": ["tcp_established", "tcp_time_wait"]
+      }
+    }
+  }
+}
+EOF
+
+# Iniciar o CloudWatch Agent
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+-a start \
+-c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json \
+-s
 ```
 * Associe o Launch Template ou Launch Configuration que usa a AMI das instâncias que você configurou.
 
@@ -165,6 +204,8 @@ O Script vai:
   * Criar um arquivo docker-compose com a imagem do wordpress, mapeamento de porta e ambiente de configuração para a conexão com o banco de dados.
   * Dar as permissões necessárias ao arquivo.
   * Subir o docker-compose.
+  * Instalar o Amazon CloudWatch Agent
+  * Criar arquivo de configuração do CloudWatch Agent e iniciá-lo
 
 ### Conectar Tudo e Testar
 
